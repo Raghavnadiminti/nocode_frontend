@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 
-// Reusable Input Component
 function Input({ type, placeholder, value, onChange }) {
   return (
     <input
@@ -14,9 +13,10 @@ function Input({ type, placeholder, value, onChange }) {
 }
 
 // Reusable Button Component
-function Button({ children, onClick, className }) {
+function Button({ children, onClick, className, type = "button" }) {
   return (
     <button
+      type={type}
       onClick={onClick}
       className={`px-4 py-2 font-medium rounded-lg transition ${className}`}
     >
@@ -25,7 +25,7 @@ function Button({ children, onClick, className }) {
   );
 }
 
-// Reusable Card Component
+
 function Card({ children, className }) {
   return (
     <div className={`bg-white rounded-2xl shadow-md ${className}`}>{children}</div>
@@ -42,6 +42,48 @@ export default function AuthPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [mobile, setMobile] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  // Handle form submit
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      const url = isLogin
+        ? "http://127.0.0.1:8000/user/login"
+        : "http://127.0.0.1:8000/user/signup";
+
+      const payload = isLogin
+        ? { email, password }
+        : { email, name, password, mobile_number: mobile };
+
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      console.log("Response:", data);
+
+      if (data.success) {
+        // Store email in sessionStorage
+        sessionStorage.setItem("userEmail", email);
+        alert(`${isLogin ? "Login" : "Signup"} successful!`);
+      } else {
+        setError(data.message || "Something went wrong");
+      }
+    } catch (err) {
+      console.error("Error:", err);
+      setError("Server error. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -50,19 +92,34 @@ export default function AuthPage() {
           <h2 className="text-2xl font-bold text-center mb-6 text-gray-800">
             {isLogin ? "Login to GenAI Stack" : "Register for GenAI Stack"}
           </h2>
-          <form className="space-y-4">
+
+          <form className="space-y-4" onSubmit={handleSubmit}>
             {!isLogin && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Name
-                </label>
-                <Input
-                  type="text"
-                  placeholder="Enter your name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-              </div>
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Name
+                  </label>
+                  <Input
+                    type="text"
+                    placeholder="Enter your name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700">
+                    Mobile Number
+                  </label>
+                  <Input
+                    type="text"
+                    placeholder="Enter your mobile number"
+                    value={mobile}
+                    onChange={(e) => setMobile(e.target.value)}
+                  />
+                </div>
+              </>
             )}
 
             <div>
@@ -89,8 +146,13 @@ export default function AuthPage() {
               />
             </div>
 
-            <Button className="w-full bg-green-600 hover:bg-green-700 text-white">
-              {isLogin ? "Login" : "Register"}
+            {error && <p className="text-red-500 text-sm">{error}</p>}
+
+            <Button
+              type="submit"
+              className="w-full bg-green-600 hover:bg-green-700 text-white"
+            >
+              {loading ? "Please wait..." : isLogin ? "Login" : "Register"}
             </Button>
           </form>
 
