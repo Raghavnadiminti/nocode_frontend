@@ -7,8 +7,7 @@ const LLMNode = ({ id, data }) => {
   const [model, setModel] = useState(data.model || "GPT 4o- Mini");
   const [apiKey, setApiKey] = useState(data.apiKey || "");
   const [prompt, setPrompt] = useState(
-    data.prompt ||
-      "You are a helpful PDF assistant. Use web search if the PDF lacks context\n\nCONTEXT: {context}\nUser Query: {query}"
+    data.prompt 
   );
   const [temperature, setTemperature] = useState(data.temperature || 0.75);
   const [serpApiKey, setSerpApiKey] = useState(data.serpApiKey || "");
@@ -28,7 +27,7 @@ const LLMNode = ({ id, data }) => {
   return (
     <div className="p-3 border rounded-lg bg-white shadow-md w-80">
       {/* Title */}
-      <h3 className="font-semibold">🤖 LLM (OpenAI)</h3>
+      <h3 className="font-semibold">🤖 LLM(Gemini)</h3>
       <p className="text-sm text-gray-500 mb-3">Run a query with OpenAI LLM</p>
 
       {/* Model */}

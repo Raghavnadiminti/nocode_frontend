@@ -8,7 +8,7 @@ import OutputNode from "./output.jsx";
 
 const items = [
   { id: "input", label: "Input",type:"userQuery" },
-  { id: "llm", label: "LLM (OpenAI)",type:"llm" },
+  { id: "llm", label: "LLM (Gemini)",type:"llm" },
   { id: "kb", label: "Knowledge Base",type:"knowledgeBase" },
   { id: "output", label: "Output",type:"output"},
 ];
