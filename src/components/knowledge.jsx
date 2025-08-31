@@ -54,7 +54,7 @@ const KnowledgeBaseNode = ({ id, data }) => {
         onChange={(e) => setEmbeddingModel(e.target.value)}
         className="w-full p-2 mt-1 border rounded"
       >
-        <option value="text-embedding-3-large">text-embedding-3-large</option>
+        <option value="text-embedding-3-large">text-embedding-ada-002</option>
         <option value="text-embedding-3-small">text-embedding-3-small</option>
       </select>
 

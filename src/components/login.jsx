@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-
+import { useNavigate } from "react-router-dom";
 function Input({ type, placeholder, value, onChange }) {
   return (
     <input
@@ -45,6 +45,7 @@ export default function AuthPage() {
   const [mobile, setMobile] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   // Handle form submit
   const handleSubmit = async (e) => {
@@ -73,7 +74,7 @@ export default function AuthPage() {
       if (data.success) {
         // Store email in sessionStorage
         sessionStorage.setItem("userEmail", email);
-        alert(`${isLogin ? "Login" : "Signup"} successful!`);
+       navigate('/dashboard')
       } else {
         setError(data.message || "Something went wrong");
       }

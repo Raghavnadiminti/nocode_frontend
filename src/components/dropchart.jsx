@@ -11,12 +11,14 @@ import {
   BackgroundVariant,Panel
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import { useParams } from 'react-router-dom';
  import { DnDProvider, useDnD } from '../dnd';
 import UserQueryNode from "./input.jsx";
 import KnowledgeBaseNode from "./knowledge.jsx";
 import LLMNode from "./llm.jsx";
 import OutputNode from "./output.jsx";
-import axios from 'axios'
+import axios from 'axios';
+import LLMOverlay from './llmoutput.jsx';
 const nodeTypes = {
   userQuery: UserQueryNode,
   knowledgeBase: KnowledgeBaseNode,
@@ -28,14 +30,35 @@ const initialNodes = [
 ];
 let id = 0;
 const getId = () => `dndnode_${id++}`;
-const initialEdges = [];
- 
+const initialEdges=[] 
+
 export default function DropChart() {
+
   const reactFlowWrapper = useRef(null);
+  const [loading,setLoading]=useState(false)
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [knowledge,setKnowledge] = useState(null)
+   const { id2 } = useParams();
+   const email=sessionStorage.getItem("userEmail")
+  useEffect(() => {
+    console.log(id2)
+    if (!id2) return; // Safety check
 
+    const fetchWorkflow = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get(`http://127.0.0.1:8000/workflow/${id2}`);
+           setNodes(response.data.workflow.data)
+           setEdges(response.data.workflow.graph)
+      } catch (err) {
+        setError(err.message || 'Something went wrong');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchWorkflow();
+  }, []);
    const { screenToFlowPosition } = useReactFlow();
      useEffect(() => {
     console.log("All node data:");
@@ -71,9 +94,7 @@ export default function DropChart() {
         return;
       }
  
-      // project was renamed to screenToFlowPosition
-      // and you don't need to subtract the reactFlowBounds.left/top anymore
-      // details: https://reactflow.dev/whats-new/2023-11-10
+
       const position = screenToFlowPosition({
         x: event.clientX,
         y: event.clientY,
@@ -95,19 +116,24 @@ export default function DropChart() {
     event.dataTransfer.setData('text/plain', nodeType);
     event.dataTransfer.effectAllowed = 'move';
   };
-
+const [showLLM, setShowLLM] = useState(false);
+const [llmOutput, setLLMOutput] = useState("");
 
 function handleRun(){
- axios.get("http://127.0.0.1:8000/workflow/execute/a5abce2c-04df-4ab5-81a3-7400ea910790").then((res)=>{
-          console.log(res.data)
-        })
+ axios.get(`http://127.0.0.1:8000/workflow/execute/${id2}`).then((res) => {
+   
+    const text = res.data.llm_output.content
+    setLLMOutput(text);
+    setShowLLM(true);
+    console.log(res.data);
+  });
 }
 async function handleSave(){
 const file = nodes.find(({ type, data }) => type === "knowledgeBase" && data?.file)?.data.file;
 console.log(file)
 const formData = new FormData();
-formData.append("email", "raghavnadiminti@gmail.com");
-formData.append("workflow_id", "a5abce2c-04df-4ab5-81a3-7400ea910790");
+formData.append("email",email);
+formData.append("workflow_id",id2);
 if (file) {
   formData.append("file", file);
 }
@@ -144,7 +170,7 @@ const reqnodes = nodes.map(({ id, type, data, position }) => {
           name:"flow2",
           edges:edges
         }
-        axios.post("http://127.0.0.1:8000/workflow/a5abce2c-04df-4ab5-81a3-7400ea910790",body).then((res)=>{
+        axios.post(`http://127.0.0.1:8000/workflow/${id2}`,body).then((res)=>{
           console.log(res.data)
         })
        
@@ -191,6 +217,12 @@ const reqnodes = nodes.map(({ id, type, data, position }) => {
           </div>
         </Panel>
       </ReactFlow>
+        <LLMOverlay
+    open={showLLM}
+    onClose={() => setShowLLM(false)}
+    title="LLM Output"
+    content={llmOutput || "No output produced."}
+  />
     </div>
   );
 }
